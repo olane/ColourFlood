@@ -11,6 +11,22 @@ function generateMaze(width, height) {
   var cells = new Array(width * height), // each cell’s edge bits
       remaining = range(width * height), // cell indexes to visit
       previous = new Array(width * height); // current random walk
+      traps = new Array(width * height); //cells we can't leave
+
+  var r = Math.min(height * 1/2 - 2, width * 1/2 - 2);
+
+  for(var i = 0; i < width * height; i++){
+    var y = i/width;
+    var x = i%width;
+
+    if(Math.pow(x - width/2, 2) + Math.pow(y - height/2, 2) > Math.pow(r, 2)) {
+      traps[i] = true;
+    }
+    else {
+      traps[i] = false;
+    }
+  }
+
 
   // Add a random cell.
   var start = remaining.pop();
@@ -19,6 +35,10 @@ function generateMaze(width, height) {
   // While there are remaining cells,
   // add a loop-erased random walk to the maze.
   while (!loopErasedRandomWalk());
+
+  for(var i = 0; i < width * height; i++){
+    if(traps[i]) cells[i] = 0;
+  }
 
   return cells;
 
@@ -41,16 +61,28 @@ function generateMaze(width, height) {
 
       // picking a legal random direction at each step.
       direction = Math.random() * 4 | 0;
-      if (direction === 0) { if (j <= 0) continue walk; --j; }
-      else if (direction === 1) { if (j >= height - 1) continue walk; ++j; }
-      else if (direction === 2) { if (i <= 0) continue walk; --i; }
-      else { if (i >= width - 1) continue walk; ++i; }
+      if (direction === 0) { 
+        if (j <= 0 ) continue walk; 
+        --j; 
+      }
+      else if (direction === 1) { 
+        if (j >= height - 1) continue walk; 
+        ++j;
+      }
+      else if (direction === 2) { 
+        if (i <= 0 ) continue walk; 
+        --i;
+      }
+      else { 
+        if (i >= width - 1 ) continue walk;
+        ++i; 
+      }
 
       // If this new cell was visited previously during this walk,
       // erase the loop, rewinding the path to its earlier state.
       // Otherwise, just add it to the walk.
       index1 = j * width + i;
-      if (previous[index1] >= 0) eraseWalk(index0, index1);
+      if (previous[index1] >= 0 ) eraseWalk(index0, index1);
       else previous[index1] = index0;
       index0 = index1;
 
@@ -85,5 +117,9 @@ function generateMaze(width, height) {
     var range = new Array(n), i = -1;
     while (++i < n) range[i] = i;
     return range;
+  }
+
+  function coordToIndex(x, y, width, height){
+    return x + y * width;
   }
 }
